@@ -1,0 +1,44 @@
+{
+  "theme": "human-minimalist-stone",
+  "colors": {
+    "background": {
+      "main": "#F9F8F6",
+      "description": "Warm stone / light canvas, used for primary background."
+    },
+    "sidebar": {
+      "background": "#F1EFEA",
+      "description": "Slightly darker warm stone, used for side panels and input areas."
+    },
+    "text": {
+      "primary": "#1C1E21",
+      "description": "Deep matte charcoal for high legibility.",
+      "secondary": "#6A6E75",
+      "description": "Soft slate gray for labels, helpers, and secondary metadata."
+    },
+    "accent": {
+      "primary": "#C54E36",
+      "description": "Refined terracotta / rust, used for targets, active states, and buttons.",
+      "hover": "#AA3D26",
+      "description": "Darker terracotta shade for hover states."
+    },
+    "status": {
+      "success": "#3A6351",
+      "description": "Deep sage green for successful localizations or verified states.",
+      "warning": "#D98C00",
+      "description": "Ochre yellow for warnings and ambiguity indicators."
+    },
+    "borders": {
+      "main": "#E2DFD8",
+      "description": "Light earthy lines to delineate panels and inputs."
+    },
+    "grids": {
+      "lines": "#EAE8E2",
+      "dots": "#D3CFC6",
+      "description": "Used for background grid meshes and surveyors indicators."
+    }
+  },
+  "fonts": {
+    "sans": "'Outfit', sans-serif",
+    "mono": "'JetBrains Mono', monospace"
+  }
+}

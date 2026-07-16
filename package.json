@@ -1,0 +1,27 @@
+{
+  "name": "projet-geographique",
+  "version": "1.0.0",
+  "description": "Service de géocodage avec l'API Géoplateforme IGN / BAN",
+  "main": "dist/geocoder.js",
+  "types": "dist/geocoder.d.type",
+  "scripts": {
+    "build": "tsc",
+    "demo": "ts-node src/example.ts",
+    "dev": "vite"
+  },
+  "keywords": [
+    "geocoding",
+    "ban",
+    "ign",
+    "geojson",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.0"
+  }
+}

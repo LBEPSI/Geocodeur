@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Géocodeur BAN — Détection de Parcelles</title>
+  <!-- Modern Google Font Outfit & JetBrains Mono for a clean, architectural typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@200;300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/src/index.css">
+</head>
+
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar: Logo & Controls -->
+    <aside class="sidebar">
+      <header class="app-header">
+        <span class="app-subtitle">PIPELINE CADASTRE</span>
+        <h1 class="app-title">GÉOCODEUR</h1>
+        <p class="app-desc">Détermination des coordonnées géographiques de parcelles via la Base Adresse Nationale.</p>
+      </header>
+
+      <form id="geocode-form" class="geocode-form">
+        <div class="form-group">
+          <label for="address-input" class="form-label">Adresse textuelle</label>
+          <div class="input-wrapper">
+            <input type="text" id="address-input" class="form-input" placeholder="Ex: 8 Boulevard du Port, Amiens"
+              required autocomplete="off">
+            <button type="submit" id="search-btn" class="btn btn-primary" aria-label="Rechercher">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="icon">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.602 10.602z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Advanced Options Discloser -->
+        <details class="advanced-settings">
+          <summary class="settings-summary">
+            <span>Paramètres avancés</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor" class="icon arrow">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </summary>
+
+          <div class="settings-content">
+            <div class="form-group">
+              <label for="threshold-input" class="form-label">Seuil de confiance (<span
+                  id="threshold-val">0.80</span>)</label>
+              <input type="range" id="threshold-input" min="0.0" max="1.0" step="0.05" value="0.80" class="form-slider">
+              <span class="form-help">Les scores inférieurs lèveront une ambiguïté.</span>
+            </div>
+
+            <div class="form-group">
+              <label for="index-input" class="form-label">Index de recherche</label>
+              <select id="index-input" class="form-select">
+                <option value="address" selected>Adresses (BAN)</option>
+                <option value="poi">Points d'intérêt (POI)</option>
+                <option value="parcel">Parcelles cadastrales</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="postcode-input" class="form-label">Code postal</label>
+                <input type="text" id="postcode-input" class="form-input-small" placeholder="Ex: 80000" maxlength="5">
+              </div>
+              <div class="form-group">
+                <label for="citycode-input" class="form-label">Code INSEE</label>
+                <input type="text" id="citycode-input" class="form-input-small" placeholder="Ex: 80021" maxlength="5">
+              </div>
+            </div>
+          </div>
+        </details>
+      </form>
+
+      <!-- Configuration IA Section -->
+      <div class="search-section" style="margin-top: 1.5rem; padding: 0 1.5rem;">
+        <span class="section-tag" style="font-family: var(--font-sans); font-size: 0.58rem; font-weight: 700; color: var(--color-text-secondary); letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem; text-transform: uppercase;">CONFIGURATION IA</span>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label for="gemini-key" class="form-label">Clé API Gemini</label>
+          <div style="display: flex; gap: 0.4rem; width: 100%;">
+            <input type="password" id="gemini-key" placeholder="AIzaSy..." class="form-input" style="font-family: var(--font-mono); font-size: 0.72rem; flex-grow: 1;">
+            <button type="button" id="btn-clear-gemini-key" class="tab-btn" title="Supprimer la clé de l'application" style="padding: 0.25rem 0.5rem; display: flex; align-items: center; justify-content: center; height: 32px; flex-shrink: 0;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 0.85rem; height: 0.85rem;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>
+            </button>
+          </div>
+          <small class="help-text" style="font-size: 0.6rem; color: var(--color-text-secondary); display: block; margin-top: 0.3rem; line-height: 1.3;">
+            La clé est stockée uniquement en local dans votre navigateur.
+          </small>
+        </div>
+      </div>
+
+      <footer class="sidebar-footer">
+        <p>Service connecté à l'API officielle de la Géoplateforme IGN.</p>
+        <p class="status-indicator"><span class="dot active"></span> API Opérationnelle</p>
+      </footer>
+    </aside>
+
+    <!-- Main Results Area -->
+    <main class="results-viewer">
+
+      <!-- State 1: Empty / Waiting -->
+      <section id="state-idle" class="viewer-state active">
+        <div class="idle-content">
+          <div class="cadastral-grid-bg">
+            <!-- Decorative SVG grid suggesting survey/cadastral charts -->
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--color-grid)" stroke-width="0.75" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)" />
+            </svg>
+          </div>
+          <div class="state-message">
+            <span class="visual-placeholder">⊙</span>
+            <h2>En attente d'adresse</h2>
+            <p>Saisissez une adresse postale dans le panneau de gauche pour démarrer le processus de géolocalisation et
+              l'analyse de parcelle.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- State 2: Loading -->
+      <section id="state-loading" class="viewer-state">
+        <div class="loader-content">
+          <div class="spinner"></div>
+          <p class="loader-text">INTERROGATION DU RÉFÉRENTIEL BAN...</p>
+        </div>
+      </section>
+
+      <!-- State 3: Success -->
+      <section id="state-success" class="viewer-state">
+        <div class="success-layout">
+          <div class="details-pane">
+            <button id="back-to-suggestions-btn" class="btn-back" style="display: none;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                stroke="currentColor" class="icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              <span>Retour aux suggestions</span>
+            </button>
+
+            <div class="match-meta">
+              <span class="match-badge">Vérifié</span>
+              <div class="score-container">
+                <span class="score-label">FIABILITÉ</span>
+                <span id="res-score" class="score-value">0.98</span>
+              </div>
+            </div>
+
+            <h2 id="res-label" class="result-address">8 Boulevard du Port, 80000 Amiens</h2>
+
+            <div class="coordinates-card">
+              <div class="coords-header">
+                <span class="coords-title">COORDONNÉES WGS84</span>
+                <button id="copy-coords-btn" class="btn-copy" title="Copier les coordonnées">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="icon">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-3a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.309V19.5L18 7.309M19.5 7.875c0-.621-.504-1.125-1.125-1.125H16.5M19.5 7.875v11.625c0 .621-.504 1.125-1.125 1.125H9.75" />
+                  </svg>
+                  <span>Copier</span>
+                </button>
+              </div>
+              <div class="coords-values">
+                <div class="coord-field">
+                  <span class="coord-label">LATITUDE</span>
+                  <span id="res-lat" class="coord-value">49.8974</span>
+                </div>
+                <div class="coord-field">
+                  <span class="coord-label">LONGITUDE</span>
+                  <span id="res-lon" class="coord-value">2.2901</span>
+                </div>
+              </div>
+
+              <!-- Bounding box sub-section -->
+              <div class="bbox-section" id="res-bbox-container"
+                style="display: none; border-top: 1px solid var(--color-border); margin-top: 1rem; padding-top: 1rem;">
+                <span class="coords-title" style="display: block; margin-bottom: 0.5rem;">EMPRISE (BOUNDING BOX
+                  WGS84)</span>
+                <div class="coords-values" style="grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem;">
+                  <div class="coord-field">
+                    <span class="coord-label">LAT MIN / MAX</span>
+                    <span class="coord-value font-mono" style="font-size: 0.85rem;" id="res-bbox-lat">49.8971 /
+                      49.8974</span>
+                  </div>
+                  <div class="coord-field">
+                    <span class="coord-label">LON MIN / MAX</span>
+                    <span class="coord-value font-mono" style="font-size: 0.85rem;" id="res-bbox-lon">2.2900 /
+                      2.2904</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metadata-grid">
+              <div class="meta-item">
+                <span class="meta-label">CODE POSTAL</span>
+                <span id="res-postcode" class="meta-value">80000</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">CODE INSEE (COMMUNE)</span>
+                <span id="res-citycode" class="meta-value">80021</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">COMMUNE</span>
+                <span id="res-city" class="meta-value">Amiens</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">CATÉGORIE</span>
+                <span id="res-type" class="meta-value">housenumber</span>
+              </div>
+              <div class="meta-item" id="res-area-container" style="display: none;">
+                <span class="meta-label">SURFACE CADASTRALE</span>
+                <span id="res-area" class="meta-value font-mono"
+                  style="font-weight: bold; color: var(--color-primary);">450 m²</span>
+              </div>
+              <div class="meta-item" id="res-parcel-name-container" style="display: none;">
+                <span class="meta-label">RÉFÉRENCE PARCELLE</span>
+                <span id="res-parcel-name" class="meta-value font-mono"
+                  style="font-weight: bold; color: var(--color-primary);">-</span>
+              </div>
+              <div class="meta-item full-width">
+                <span class="meta-label">DÉPARTEMENT / RÉGION</span>
+                <span id="res-context" class="meta-value">80, Somme, Hauts-de-France</span>
+              </div>
+              <div class="meta-item full-width">
+                <span class="meta-label">ID BAN UNIQUE</span>
+                <span id="res-id" class="meta-value font-mono">ADRESSES_0000001</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Graphic Representation (Map Mock / Cadastral plot visualization) -->
+          <div class="visual-pane">
+            <div class="parcel-canvas-container">
+              <div class="canvas-header">
+                <span class="canvas-tag">PHOTO SATELLITE & CADASTRE</span>
+              </div>
+              
+              <div class="satellite-wrapper">
+                <img id="satellite-img" src="" alt="Orthophoto satellite de la parcelle">
+                <svg id="satellite-overlay-svg" viewBox="0 0 400 400" width="100%" height="100%">
+                  <g id="satellite-overlay-plots-container"></g>
+                  <g id="satellite-overlay-marker">
+                    <circle cx="200" cy="200" r="5" class="marker-dot" />
+                    <line x1="200" y1="170" x2="200" y2="230" stroke="var(--color-primary)" stroke-width="0.75" />
+                    <line x1="170" y1="200" x2="230" y2="200" stroke="var(--color-primary)" stroke-width="0.75" />
+                  </g>
+                </svg>
+              </div>
+
+              <div class="parcel-info">
+                <span id="canvas-coords">LAT: - | LON: -</span>
+              </div>
+            </div>
+
+            <!-- IA Analysis Panel -->
+            <div class="ai-analysis-panel">
+              <span class="meta-label">Détection Éléments par IA</span>
+              <div id="ai-trigger-container">
+                <button type="button" id="btn-run-analysis" class="btn btn-ai-action">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon" style="width: 0.9rem; height: 0.9rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21L14.907 18M18 10.5c0-2.607-1.646-4.832-4-5.696M12 3v2.25M3 10.5a8.25 8.25 0 0014.907 4.5M3 10.5h1.5m18 0h-1.5M10.5 12h.008v.008H10.5V12zm3.75 0h.008v.008h-.008V12zm3.75 0h.008v.008h-.008V12z" />
+                  </svg>
+                  Analyser la photo satellite avec Gemini
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analysis Result Container -->
+          <div id="ai-result-box" class="ai-result-card" style="grid-column: span 2; margin-top: 1.5rem;">
+            <div id="ai-loading" class="ai-loading-indicator">
+              <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Analyse de l'image satellite en cours...</span>
+            </div>
+            
+            <div id="ai-results" class="ai-results-content">
+              <div class="ai-badges-row">
+                <span id="badge-pool" class="badge">Piscine : -</span>
+                <span id="badge-solar" class="badge">Panneaux : -</span>
+              </div>
+              
+              <div class="ai-details-list">
+                <div class="ai-details-item">
+                  <strong>Analyse Piscine</strong>
+                  <div id="text-pool-desc" class="ai-desc-text">-</div>
+                </div>
+                <div class="ai-details-item">
+                  <strong>Analyse Panneaux</strong>
+                  <div id="text-solar-desc" class="ai-desc-text">-</div>
+                </div>
+                <div class="ai-details-item">
+                  <strong>Description Terrain</strong>
+                  <div id="text-general-desc" class="ai-desc-text">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- State 4: Ambiguous Suggestions -->
+      <section id="state-ambiguous" class="viewer-state">
+        <div class="ambiguous-content">
+          <div class="ambiguous-header">
+            <span class="warning-tag">AMBIGUÏTÉ DÉTECTÉE</span>
+            <h2>Adresse imprécise ou multiples correspondances</h2>
+            <p>Le score de confiance du premier résultat est trop faible. Veuillez sélectionner la bonne adresse parmi
+              les suggestions ci-dessous pour valider la localisation.</p>
+          </div>
+
+          <div id="suggestions-list" class="suggestions-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- State 5: Error -->
+      <section id="state-error" class="viewer-state">
+        <div class="error-content">
+          <span class="error-badge">DÉFAILLANCE</span>
+          <h2 id="error-title">Erreur de géocodage</h2>
+          <p id="error-msg">Une erreur réseau est survenue lors de l'appel à la BAN.</p>
+          <button id="retry-btn" class="btn btn-secondary">Réessayer</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
