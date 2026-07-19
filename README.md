@@ -41,14 +41,16 @@ Voici un aperçu visuel du fonctionnement de l'application :
 ### 1. Recherche d'Adresse & Cadastre
 Lorsque vous saisissez une adresse valide, l'application affiche la fiche de coordonnées, les informations de parcelle et superpose le tracé du cadastre sur la photo satellite :
 
-[Recherche d'Adresse - Exemple 1] <img width="1279" height="700" alt="geocodeur-1" src="https://github.com/user-attachments/assets/00335ff4-8a5e-4fa7-89b7-8e77044d53a8" />
+[Recherche d'Adresse - Exemple 1] <img width="1279" height="700" alt="geocodeur-1" src="https://github.com/user-attachments/assets/069ec042-ffb3-4f7e-ba93-84f0a53c7219" />
+
 
 
 
 ### 2. Analyse Automatique par l'IA (Gemini)
 Après avoir configuré votre clé API et cliqué sur **"Analyser la photo satellite avec Gemini"**, l'application fait défiler la page de manière fluide pour centrer les résultats de l'IA (détection de piscine, détection de panneaux solaires et description complète) :
 
-[Analyse par l'IA - Défilement & Résultats] <img width="1279" height="697" alt="geocodeur-2" src="https://github.com/user-attachments/assets/a9988885-0a9a-42a1-bce5-458a846e9b32" />
+[Analyse par l'IA - Défilement & Résultats] <img width="1279" height="697" alt="geocodeur-2" src="https://github.com/user-attachments/assets/56e52b89-d5d4-4942-b1ba-53ee63f28f5f" />
+
 
 
 ---
